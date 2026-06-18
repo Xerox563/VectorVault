@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+python-dotenv
+openai          # OpenRouter is OpenAI-compatible, so we use this client
+sentence-transformers  # for creating embeddings locally
+chromadb        # vector database (stores chunks + vectors + metadata)
+PyMuPDF         # read PDF files
+python-multipart # for file uploads in FastAPI
