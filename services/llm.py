@@ -1,12 +1,5 @@
 from openai import OpenAI
-from config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL, LLM_MODEL
-
-# OpenRouter is OpenAI-compatible
-# we just point the base_url to OpenRouter instead of OpenAI
-client = OpenAI(
-    api_key=OPENROUTER_API_KEY,
-    base_url=OPENROUTER_BASE_URL
-)
+from config import OPENROUTER_BASE_URL, LLM_MODEL
 
 
 def build_prompt(question: str, context: str) -> list[dict]:
@@ -48,11 +41,17 @@ Answer based only on the context above, citing the source documents:"""
     ]
 
 
-def get_llm_answer(question: str, context: str) -> str:
+def get_llm_answer(question: str, context: str, api_key: str) -> str:
     """
     Send question + context to LLM via OpenRouter.
     Returns the generated answer as a string.
     """
+    # Create client instance with user-provided API key
+    client = OpenAI(
+        api_key=api_key,
+        base_url=OPENROUTER_BASE_URL
+    )
+    
     messages = build_prompt(question, context)
 
     response = client.chat.completions.create(

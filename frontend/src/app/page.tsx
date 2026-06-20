@@ -16,7 +16,8 @@ import {
   LayoutDashboard,
   Settings,
   ShieldCheck,
-  Zap
+  Zap,
+  Key
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -43,6 +44,13 @@ export default function VectorVaultDark() {
   const [isUploading, setIsUploading] = useState(false);
   const [sources, setSources] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [apiKey, setApiKey] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('vault_openrouter_key') || '';
+    }
+    return '';
+  });
+  const [showKeyInput, setShowKeyInput] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,6 +60,10 @@ export default function VectorVaultDark() {
   useEffect(() => {
     fetchSources();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('vault_openrouter_key', apiKey);
+  }, [apiKey]);
 
   const fetchSources = async () => {
     try {
@@ -90,6 +102,10 @@ export default function VectorVaultDark() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+    if (!apiKey.trim()) {
+      setShowKeyInput(true);
+      return;
+    }
 
     const userMessage = input;
     setInput('');
@@ -99,6 +115,7 @@ export default function VectorVaultDark() {
     try {
       const response = await axios.post(`${API_BASE_URL}/query/ask`, {
         question: userMessage,
+        api_key: apiKey,
         top_k: 5
       });
 
@@ -111,7 +128,7 @@ export default function VectorVaultDark() {
     } catch (error: any) {
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        content: 'System Error: Authentication required or connection failed. Please verify your OpenRouter key.' 
+        content: 'Error: Invalid API key or connection failed. Please check your OpenRouter key.' 
       }]);
     } finally {
       setIsLoading(false);
@@ -211,13 +228,49 @@ export default function VectorVaultDark() {
         </div>
 
         <div className="p-6 border-t border-[#2d333b] bg-[#1c2128]/50 space-y-2">
+          <button 
+            onClick={() => setShowKeyInput(!showKeyInput)}
+            className="flex items-center justify-between w-full p-3 rounded-xl text-gray-400 hover:text-white hover:bg-[#1c2128] transition-all text-sm font-bold group"
+          >
+            <div className="flex items-center gap-3">
+              <Key className="w-4 h-4" />
+              API Key
+            </div>
+            {apiKey && <span className="text-xs text-green-500 font-bold">Saved</span>}
+          </button>
+          
+          <AnimatePresence>
+            {showKeyInput && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-3 space-y-3">
+                  <input 
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Enter OpenRouter key (sk-or-...)"
+                    className="w-full p-3 rounded-xl bg-[#0f1115] border border-[#30363d] focus:border-orange-500/50 outline-none text-xs text-white placeholder-gray-500"
+                  />
+                  <a 
+                    href="https://openrouter.ai/keys" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-orange-500 font-bold hover:underline"
+                  >
+                    Get your key at openrouter.ai/keys →
+                  </a>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
           <button className="flex items-center gap-3 w-full p-3 rounded-xl text-gray-400 hover:text-white hover:bg-[#1c2128] transition-all text-sm font-bold">
             <LayoutDashboard className="w-4 h-4" />
             Analytics
-          </button>
-          <button className="flex items-center gap-3 w-full p-3 rounded-xl text-gray-400 hover:text-white hover:bg-[#1c2128] transition-all text-sm font-bold">
-            <Settings className="w-4 h-4" />
-            Vault Settings
           </button>
         </div>
       </motion.aside>
@@ -289,6 +342,25 @@ export default function VectorVaultDark() {
                 </div>
               </motion.div>
             )}
+            {!apiKey && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-center"
+              >
+                <div className="bg-orange-500/10 border border-orange-500/20 p-6 rounded-3xl max-w-md text-center">
+                  <Key className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold text-white mb-2">Add Your OpenRouter Key</h3>
+                  <p className="text-sm text-gray-400 mb-4">To ask questions about your documents, please enter your OpenRouter API key in the sidebar.</p>
+                  <button 
+                    onClick={() => setShowKeyInput(true)}
+                    className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold text-sm transition-all"
+                  >
+                    Open Settings
+                  </button>
+                </div>
+              </motion.div>
+            )}
             <div ref={chatEndRef} />
           </div>
         </div>
@@ -310,18 +382,19 @@ export default function VectorVaultDark() {
                     handleSendMessage(e);
                   }
                 }}
-                placeholder="Query the Knowledge Vault..."
+                placeholder={!apiKey ? "Add your API key first..." : "Query the Knowledge Vault..."}
                 className="w-full p-6 pr-20 rounded-3xl bg-[#1c2128] border border-[#30363d] focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all shadow-2xl text-[16px] text-white placeholder-gray-500 resize-none min-h-[80px]"
                 rows={1}
+                disabled={!apiKey}
               />
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 type="submit"
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || !apiKey}
                 className={cn(
                   "absolute right-4 bottom-4 p-4 rounded-2xl transition-all shadow-lg",
-                  input.trim() && !isLoading 
+                  input.trim() && !isLoading && apiKey
                     ? "bg-orange-600 text-white shadow-orange-600/20" 
                     : "bg-[#2d333b] text-gray-500 cursor-not-allowed"
                 )}

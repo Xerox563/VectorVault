@@ -16,6 +16,7 @@ class SearchRequest(BaseModel):
 
 class AskRequest(BaseModel):
     question: str           # user's question
+    api_key: str            # user's OpenRouter API key
     top_k: int = 5          # how many chunks to retrieve
     source_filter: str = None  # optional routing to one doc
 
@@ -112,8 +113,8 @@ def ask(request: AskRequest):
     # "[SOURCE: django.txt]\nDjango has admin...\n[SOURCE: flask.txt]\n..."
     context = build_context_string(grouped)
 
-    # step 4: send to LLM, get answer
-    answer = get_llm_answer(request.question, context)
+    # step 4: send to LLM, get answer with user's API key
+    answer = get_llm_answer(request.question, context, request.api_key)
 
     # step 5: return answer + metadata about what sources were used
     return {
