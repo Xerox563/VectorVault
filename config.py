@@ -9,7 +9,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # which LLM to use via OpenRouter (free and capable)
-LLM_MODEL = "mistralai/mistral-7b-instruct"
+LLM_MODEL = "openai/gpt-3.5-turbo"
 
 # embedding model (runs locally, no API needed)
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
