@@ -30,4 +30,11 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]
         start += chunk_size - overlap
 
     return chunks
+
+"""
+This module handles document text extraction and chunking.
+It uses PyMuPDF (fitz) for PDF files and basic decoding for text files.
+The chunking logic ensures that large documents are broken into manageable pieces
+with overlapping sections to maintain contextual information for retrieval.
+"""
           

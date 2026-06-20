@@ -1,5 +1,5 @@
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 # load variables from .env file into environment
 load_dotenv()
@@ -19,3 +19,9 @@ CHROMA_DB_PATH = "./chroma_db"
 
 # how many top chunks to retrieve per query
 TOP_K = 5
+
+"""
+This file manages the application configuration.
+It loads environment variables using python-dotenv and defines global settings
+for the LLM provider, local embedding model, and vector database paths.
+"""
