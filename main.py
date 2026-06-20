@@ -1,12 +1,22 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from config import OPENROUTER_API_KEY
 from routers.ingest import router as ingest_router
 from routers.query import router as query_router
 
 app = FastAPI(
-    title="Multi-Document RAG",
-    description="Ask questions across multiple documents",
+    title="VectorVault API",
+    description="Multi-Document RAG backend",
     version="1.0"
+)
+
+# Enable CORS for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(ingest_router)

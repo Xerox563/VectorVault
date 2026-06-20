@@ -1,48 +1,72 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --orange-50: #fff7ed;
-  --orange-100: #ffedd5;
+  --background: #0f1115;
+  --foreground: #f0f0f0;
+  --sidebar: #161920;
   --orange-500: #f97316;
   --orange-600: #ea580c;
-  --orange-700: #c2410c;
+  --card: #1c2128;
+  --border: #2d333b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-orange-50: var(--orange-50);
-  --color-orange-100: var(--orange-100);
+  --color-sidebar: var(--sidebar);
   --color-orange-500: var(--orange-500);
   --color-orange-600: var(--orange-600);
-  --color-orange-700: var(--orange-700);
+  --color-card: var(--card);
+  --color-border: var(--border);
 }
 
 body {
-  background: #fdfcfb;
+  background: var(--background);
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  overflow: hidden;
 }
 
-/* Claude-like chat bubble styles */
+/* Claude-like Dark Mode Chat Bubbles */
 .chat-bubble {
   max-width: 85%;
-  padding: 1rem;
-  border-radius: 1rem;
-  line-height: 1.5;
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  line-height: 1.6;
+  font-size: 0.95rem;
 }
 
 .user-bubble {
-  background-color: #f3f4f6;
+  background-color: #2d333b;
+  color: #ffffff;
   align-self: flex-end;
   border-bottom-right-radius: 0.25rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .ai-bubble {
-  background-color: white;
-  border: 1px solid #e5e7eb;
+  background-color: #1c2128;
+  color: #e6edf3;
+  border: 1px solid #30363d;
   align-self: flex-start;
   border-bottom-left-radius: 0.25rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444c56;
 }

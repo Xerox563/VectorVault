@@ -2,28 +2,29 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
-  Upload, 
   FileText, 
   Plus, 
-  MessageSquare, 
   Database, 
   Loader2, 
-  AlertCircle,
   FileUp,
   History,
-  Info
+  Info,
+  ChevronRight,
+  LayoutDashboard,
+  Settings,
+  ShieldCheck,
+  Zap
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-// Utility for Tailwind class merging
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// API Configuration
 const API_BASE_URL = 'http://127.0.0.1:8001';
 
 interface Message {
@@ -33,28 +34,21 @@ interface Message {
   chunks_retrieved?: number;
 }
 
-interface Source {
-  filename: string;
-}
-
-export default function VectorVaultUI() {
+export default function VectorVaultDark() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: 'Hello! I am VectorVault. Upload your documents and ask me anything about them.' }
+    { role: 'ai', content: 'Welcome to the Vault. I have processed your request. How can I assist you with your documents today?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [sources, setSources] = useState<string[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom of chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Fetch ingested sources on mount
   useEffect(() => {
     fetchSources();
   }, []);
@@ -84,12 +78,12 @@ export default function VectorVaultUI() {
       });
       setUploadStatus('success');
       fetchSources();
+      setTimeout(() => setUploadStatus('idle'), 3000);
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus('error');
     } finally {
       setIsUploading(false);
-      setSelectedFile(null);
     }
   };
 
@@ -115,10 +109,9 @@ export default function VectorVaultUI() {
         chunks_retrieved: response.data.chunks_retrieved
       }]);
     } catch (error: any) {
-      console.error('Query error:', error);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        content: error.response?.data?.detail || 'Sorry, I encountered an error while processing your request. Please make sure your API keys are configured.' 
+        content: 'System Error: Authentication required or connection failed. Please verify your OpenRouter key.' 
       }]);
     } finally {
       setIsLoading(false);
@@ -126,125 +119,188 @@ export default function VectorVaultUI() {
   };
 
   return (
-    <div className="flex h-screen bg-[#fdfcfb] text-[#1a1a1a]">
+    <div className="flex h-screen bg-[#0f1115] text-[#f0f0f0] font-sans">
       {/* Sidebar */}
-      <aside className="w-72 border-r border-gray-200 bg-white flex flex-col hidden md:flex">
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold">V</div>
-          <h1 className="text-xl font-bold tracking-tight">VectorVault</h1>
+      <motion.aside 
+        initial={{ x: -300 }}
+        animate={{ x: 0 }}
+        className="w-80 bg-[#161920] border-r border-[#2d333b] flex flex-col z-20"
+      >
+        <div className="p-8 flex items-center gap-4">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-900/20">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-white">VectorVault</h1>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Core Active</span>
+            </div>
+          </div>
         </div>
 
-        <div className="px-4 mb-6">
-          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-all group">
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+        <div className="px-6 mb-8">
+          <motion.label 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-[#30363d] rounded-2xl cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/5 transition-all group relative overflow-hidden"
+          >
+            <div className="flex flex-col items-center justify-center z-10">
               {isUploading ? (
-                <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
+                <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
               ) : (
                 <>
-                  <FileUp className="w-8 h-8 text-gray-400 group-hover:text-orange-600 mb-2" />
-                  <p className="text-sm text-gray-500 font-medium">Upload Document</p>
-                  <p className="text-xs text-gray-400 mt-1">PDF or TXT</p>
+                  <div className="w-12 h-12 rounded-full bg-[#1c2128] flex items-center justify-center mb-3 group-hover:bg-orange-500 transition-colors">
+                    <FileUp className="w-6 h-6 text-gray-400 group-hover:text-white" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-300">Upload Intelligence</p>
+                  <p className="text-[10px] text-gray-500 mt-1 font-bold uppercase tracking-tighter">PDF • TXT • DOCX</p>
                 </>
               )}
             </div>
             <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.txt" disabled={isUploading} />
-          </label>
-          {uploadStatus === 'success' && <p className="text-xs text-green-600 mt-2 text-center font-medium">Upload successful!</p>}
-          {uploadStatus === 'error' && <p className="text-xs text-red-600 mt-2 text-center font-medium">Upload failed.</p>}
+            
+            <AnimatePresence>
+              {uploadStatus === 'success' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-green-500/10 flex items-center justify-center backdrop-blur-sm"
+                >
+                  <span className="text-green-500 font-bold text-sm">Ingestion Complete</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.label>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-            <Database className="w-3 h-3" />
-            Ingested Sources
-          </div>
-          <div className="space-y-2">
-            {sources.length === 0 ? (
-              <p className="text-sm text-gray-400 italic px-2">No documents yet</p>
-            ) : (
-              sources.map((source, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100 group">
-                  <FileText className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm font-medium truncate flex-1">{source}</span>
+        <div className="flex-1 overflow-y-auto px-6 space-y-8">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                <Database className="w-3 h-3" />
+                Knowledge Base
+              </div>
+              <span className="text-[10px] bg-[#1c2128] px-2 py-0.5 rounded-full text-gray-400 font-bold">{sources.length}</span>
+            </div>
+            <div className="space-y-1">
+              {sources.length === 0 ? (
+                <div className="p-4 rounded-xl border border-[#2d333b] border-dashed text-center">
+                  <p className="text-xs text-gray-500 font-medium italic">Empty Vault</p>
                 </div>
-              ))
-            )}
+              ) : (
+                sources.map((source, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    key={i} 
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#1c2128] transition-all cursor-pointer group border border-transparent hover:border-[#30363d]"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-[#1c2128] flex items-center justify-center group-hover:bg-orange-500/10 transition-colors">
+                      <FileText className="w-4 h-4 text-orange-500" />
+                    </div>
+                    <span className="text-xs font-bold text-gray-400 group-hover:text-white truncate flex-1">{source}</span>
+                    <ChevronRight className="w-3 h-3 text-gray-600 group-hover:text-orange-500 opacity-0 group-hover:opacity-100 transition-all" />
+                  </motion.div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-100">
-          <div className="flex items-center gap-3 p-3 text-gray-500 hover:text-[#1a1a1a] cursor-pointer transition-colors">
-            <History className="w-5 h-5" />
-            <span className="text-sm font-medium">History</span>
-          </div>
+        <div className="p-6 border-t border-[#2d333b] bg-[#1c2128]/50 space-y-2">
+          <button className="flex items-center gap-3 w-full p-3 rounded-xl text-gray-400 hover:text-white hover:bg-[#1c2128] transition-all text-sm font-bold">
+            <LayoutDashboard className="w-4 h-4" />
+            Analytics
+          </button>
+          <button className="flex items-center gap-3 w-full p-3 rounded-xl text-gray-400 hover:text-white hover:bg-[#1c2128] transition-all text-sm font-bold">
+            <Settings className="w-4 h-4" />
+            Vault Settings
+          </button>
         </div>
-      </aside>
+      </motion.aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col relative bg-white md:bg-transparent">
-        {/* Header (Mobile) */}
-        <header className="md:hidden p-4 border-b border-gray-200 flex items-center justify-between bg-white">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-orange-600 rounded flex items-center justify-center text-white font-bold text-xs">V</div>
-            <h1 className="font-bold">VectorVault</h1>
-          </div>
-          <label className="p-2 text-orange-600">
-            <Plus className="w-6 h-6" />
-            <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.txt" />
-          </label>
-        </header>
-
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8">
-          <div className="max-w-3xl mx-auto space-y-8">
+      {/* Main Chat Area */}
+      <main className="flex-1 flex flex-col relative bg-[#0f1115]">
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#0f1115] to-transparent z-10 pointer-events-none" />
+        
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-8 py-12 space-y-10 custom-scrollbar">
+          <div className="max-w-4xl mx-auto w-full space-y-10">
             {messages.map((msg, i) => (
-              <div key={i} className={cn(
-                "flex flex-col",
-                msg.role === 'user' ? "items-end" : "items-start"
-              )}>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={i} 
+                className={cn(
+                  "flex flex-col w-full",
+                  msg.role === 'user' ? "items-end" : "items-start"
+                )}
+              >
                 <div className={cn(
-                  "chat-bubble shadow-sm",
+                  "chat-bubble group relative",
                   msg.role === 'user' ? "user-bubble" : "ai-bubble"
                 )}>
-                  <div className="text-[15px] whitespace-pre-wrap">{msg.content}</div>
+                  {msg.role === 'ai' && (
+                    <div className="absolute -top-3 -left-3 w-7 h-7 bg-orange-600 rounded-lg flex items-center justify-center shadow-lg">
+                      <Zap className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
                   
                   {msg.sources && msg.sources.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-tight mb-2">
-                        <Info className="w-3 h-3" />
-                        Sources used
+                    <div className="mt-6 pt-6 border-t border-[#30363d]">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">
+                        <Info className="w-3 h-3 text-orange-500" />
+                        Verified Sources
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {msg.sources.map((s, si) => (
-                          <span key={si} className="px-2 py-1 bg-orange-50 text-orange-700 rounded text-[10px] font-bold border border-orange-100">
+                          <motion.span 
+                            whileHover={{ scale: 1.05 }}
+                            key={si} 
+                            className="px-3 py-1.5 bg-[#0f1115] text-orange-500 rounded-lg text-[10px] font-bold border border-[#30363d] shadow-sm flex items-center gap-2"
+                          >
+                            <FileText className="w-3 h-3" />
                             {s}
-                          </span>
+                          </motion.span>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="ai-bubble chat-bubble flex items-center gap-3">
-                  <Loader2 className="w-4 h-4 text-orange-600 animate-spin" />
-                  <span className="text-sm text-gray-500 italic">Vault is thinking...</span>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex justify-start"
+              >
+                <div className="ai-bubble chat-bubble flex items-center gap-4 bg-[#1c2128]">
+                  <div className="flex gap-1">
+                    <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                    <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                    <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                  </div>
+                  <span className="text-sm text-gray-400 font-bold uppercase tracking-tighter">Scanning Vector Space...</span>
                 </div>
-              </div>
+              </motion.div>
             )}
             <div ref={chatEndRef} />
           </div>
         </div>
 
-        {/* Input Area */}
-        <div className="p-4 md:p-8 bg-gradient-to-t from-white via-white to-transparent">
-          <div className="max-w-3xl mx-auto">
+        {/* Input Container */}
+        <div className="p-8 md:p-12">
+          <div className="max-w-4xl mx-auto relative">
             <form 
               onSubmit={handleSendMessage}
-              className="relative group"
+              className="relative"
             >
+              <div className="absolute inset-0 bg-orange-600/20 blur-2xl rounded-3xl -z-10 opacity-0 group-focus-within:opacity-100 transition-opacity" />
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -254,26 +310,38 @@ export default function VectorVaultUI() {
                     handleSendMessage(e);
                   }
                 }}
-                placeholder="Ask VectorVault anything..."
-                className="w-full p-4 pr-14 rounded-2xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all shadow-lg shadow-black/5 resize-none min-h-[60px] max-h-48 text-[15px]"
+                placeholder="Query the Knowledge Vault..."
+                className="w-full p-6 pr-20 rounded-3xl bg-[#1c2128] border border-[#30363d] focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all shadow-2xl text-[16px] text-white placeholder-gray-500 resize-none min-h-[80px]"
                 rows={1}
               />
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 type="submit"
                 disabled={!input.trim() || isLoading}
                 className={cn(
-                  "absolute right-3 bottom-3 p-2 rounded-xl transition-all",
+                  "absolute right-4 bottom-4 p-4 rounded-2xl transition-all shadow-lg",
                   input.trim() && !isLoading 
-                    ? "bg-orange-600 text-white shadow-md shadow-orange-600/20 hover:bg-orange-700" 
-                    : "bg-gray-100 text-gray-400"
+                    ? "bg-orange-600 text-white shadow-orange-600/20" 
+                    : "bg-[#2d333b] text-gray-500 cursor-not-allowed"
                 )}
               >
                 <Send className="w-5 h-5" />
-              </button>
+              </motion.button>
             </form>
-            <p className="text-center text-[10px] text-gray-400 mt-4 font-medium uppercase tracking-widest">
-              Powered by VectorVault RAG Engine
-            </p>
+            <div className="flex items-center justify-between mt-6 px-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-3 h-3 text-green-500" />
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Local-First Privacy</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Zap className="w-3 h-3 text-orange-500" />
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Fast Ingestion</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">VectorVault v1.0</p>
+            </div>
           </div>
         </div>
       </main>
